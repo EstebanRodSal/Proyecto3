@@ -1,14 +1,175 @@
 import tkinter as tk
 from tkinter import messagebox
+from agenda import agenda as Agenda, lista as Lista, persona as Persona
 import datetime
 import webview
 
+
+
+class MiAgenda(Agenda):
+    """
+    Clase encargada de la agenda.
+    """
+
+    def __init__(self, titulo: str, fecha: datetime) -> None:
+        """
+        Constructor de la clase Mi agenda
+
+        Parámetros:
+        - titulo (str): Título de la agenda.
+        - fecha (datetime): Fecha de la agenda.
+        """
+        super().__init__()
+        self.titulo: str = titulo
+        self.fecha: datetime = fecha
+        self.participantes: MiPersona
+
+    def agregar_participante(self, nombre: str, apellido1: str, apellido2: str):
+        """
+        Agregar un participante a la agenda.
+
+        Parámetros:
+        - nombre (str): Nombre del participante.
+        - apellido1 (str): Primer apellido del participante.
+        - apellido2 (str): Segundo apellido del participante.
+        """
+        if self.participantes == None:
+            self.participantes = MiPersona(nombre=nombre, apellido1=apellido1, apellido2=apellido2)
+        else:
+            self.participantes.agregar(nombre, apellido1, apellido2)
+
+    @property
+    def asDict(self):
+        """
+        Retorna un diccionario con los atributos de la agenda.
+
+        Retorna:
+        - dict: Diccionario con los atributos de la agenda.
+        """
+        return {"Título": self.titulo, "fecha": self.fecha.__str__(), "participantes": self.participantes.asList}
+
+
+class MiLista(Lista):
+    """
+    Clase que representa una lista personalizada.
+    """
+
+    def __init__(self) -> None:
+        """
+        Constructor de la clase MiLista.
+        """
+        super().__init__()
+
+    def _agregar(self, r, e):
+        """
+        Agrega un elemento a la lista.
+
+        retorna:
+        -e
+        """
+        if self == None:
+            return e
+        else:
+            self.sig = self._agregar(r.sig, e)
+
+
+class MiPersona(Persona):
+    """
+    Clase que representa una persona a agregar.
+    """
+
+    def __init__(self, nombre: str, apellido1: str, apellido2: str) -> None:
+        """
+        Constructor de la clase MiPersona.
+
+        Args:
+        - nombre (str): Nombre de la persona.
+        - apellido1 (str): Primer apellido de la persona.
+        - apellido2 (str): Segundo apellido de la persona.
+        """
+        super().__init__(nombre, apellido1, apellido2)
+
+    def agregar(self, nombre: str, apellido1: str, apellido2: str):
+        """
+        Agrega una persona a la lista.
+
+        Args:
+        - nombre (str): Nombre de la persona a agregar.
+        - apellido1 (str): Primer apellido de la persona a agregar.
+        - apellido2 (str): Segundo apellido de la persona a agregar.
+        """
+        nueva_persona = MiPersona(nombre, apellido1, apellido2)
+        self._agregar(self, nueva_persona)
+
+    def _agregar(self, r, p):
+        """
+        Agrega una persona a la lista interna.
+
+        Retorna:
+        - La persona (p).
+        """
+        if r == None:
+            return p
+        else:
+            r.sig = self._agregar(r.sig, p)
+
+    @property
+    def asList(self):
+        """
+        Retorna una lista con las personas.
+
+        Retorna:
+        - list: Lista con las representaciones en cadena de las personas.
+        """
+        if self == None:
+            return []
+        else:
+            return self._asList(self)
+
+    def _asList(self, r):
+        """
+        Retorna una lista con las personas internas.
+
+        Args:
+
+        Retorna:
+        - list: Lista con las representaciones en cadena de las personas.
+        """
+        r: MiPersona = r
+        if r.sig == None:
+            return [r.__str__()]
+        else:
+            return [r.__str__()] + self._asList(r.sig)
+
+    def __str__(self) -> str:
+        """
+        Retorna una representación en cadena de la persona.
+
+        Retorna:
+        - str: Representación en cadena de la persona.
+        """
+        return ("{0} {1} {2}".format(self.nombre, self.apellido1, self.apellido2))
+
+
+class NodoAgenda:
+    def __init__(self, titulo):
+        self.titulo = titulo
+        self.participantes = []
+        self.apartados = []
+        self.puntos = {}
+        self.discusiones = {}
+
+
 class CreadorAgendas(tk.Tk):
     def __init__(self):
+        """Cosntructor
+        """
         super().__init__()
         self.title("Creador de Agendas")
         self.geometry("800x600")
 
+
+        #-----------------------------------Creacion de la interfaz-------------------------------------------------
         self.titulo_agenda = None
         self.participantes = []
         self.apartados = []
@@ -82,7 +243,11 @@ class CreadorAgendas(tk.Tk):
         self.boton_generar_html = tk.Button(self, text="Generar HTML", command=self.generar_html)
         self.boton_generar_html.pack()
 
+        #------------------------------------------Fin de la interfaz---------------------------------------------------------
+
     def generar_html(self):
+        """Este metodo se encarga de la construccion de la estructura html para mostrar mediante web view la agenda
+        """
         self.titulo_agenda = self.entrada_titulo.get()
         if not self.titulo_agenda:
             tk.messagebox.showwarning("Advertencia", "Debes ingresar un título para la agenda.")
@@ -125,6 +290,8 @@ class CreadorAgendas(tk.Tk):
         webview.start()
 
     def agregar_participante(self):
+        """Este metodo se encarga de agregar nuevos particpantes
+        """
         participante = self.entrada_participante.get()
         if participante:
             self.participantes.append(participante)
@@ -135,6 +302,8 @@ class CreadorAgendas(tk.Tk):
             messagebox.showwarning("Advertencia", "Debes ingresar un participante.")
 
     def eliminar_participante(self):
+        """Este metodo se encarga de eliminar participantes
+        """
         indice_seleccionado = self.lista_participantes.curselection()
         if indice_seleccionado:
             participante = self.lista_participantes.get(indice_seleccionado)
@@ -147,6 +316,8 @@ class CreadorAgendas(tk.Tk):
             messagebox.showwarning("Advertencia", "Debes seleccionar un participante.")
 
     def agregar_apartado(self):
+        """Este metodo se encarga de agregar un apartado nuevo
+        """
         apartado = self.entrada_apartado.get()
         if apartado:
             self.apartados.append(apartado)
@@ -157,6 +328,8 @@ class CreadorAgendas(tk.Tk):
             messagebox.showwarning("Advertencia", "Debes ingresar un apartado.")
 
     def eliminar_apartado(self):
+        """Este metodo se encarga de eliminar los apartados que se seleccionen
+        """
         apartado_seleccionado = self.variable_apartado.get()
         if apartado_seleccionado:
             confirmado = messagebox.askyesno("Confirmación", f"¿Estás seguro de eliminar el apartado '{apartado_seleccionado}'?")
@@ -172,6 +345,8 @@ class CreadorAgendas(tk.Tk):
             messagebox.showwarning("Advertencia", "Debes seleccionar un apartado.")
 
     def actualizar_lista_puntos(self, *args):
+        """Actualzia la lista de punteros
+        """
         apartado_seleccionado = self.variable_apartado.get()
         self.menu_desplegable_punto['menu'].delete(0, tk.END)
         if apartado_seleccionado in self.puntos:
@@ -179,6 +354,8 @@ class CreadorAgendas(tk.Tk):
                 self.menu_desplegable_punto['menu'].add_command(label=punto, command=tk._setit(self.variable_punto, punto))
 
     def agregar_punto(self):
+        """Este metodo se encarga de agregar puntos en base al apartado deleccionado
+        """
         apartado = self.variable_apartado.get()
         punto = self.entrada_punto.get()
         if apartado and punto:
@@ -192,6 +369,8 @@ class CreadorAgendas(tk.Tk):
             messagebox.showwarning("Advertencia", "Debes seleccionar un apartado e ingresar un punto.")
 
     def eliminar_punto(self):
+        """Este metodo se enacarga de eliminar elpunto seleccionado
+        """
         punto_seleccionado = self.variable_punto.get()
         if punto_seleccionado:
             confirmado = messagebox.askyesno("Confirmación", f"¿Estás seguro de eliminar el punto '{punto_seleccionado}'?")
@@ -208,13 +387,20 @@ class CreadorAgendas(tk.Tk):
             messagebox.showwarning("Advertencia", "Debes seleccionar un punto.")
 
     def agregar_discusion(self):
+        """Este metodo permite ingresar una discucion nueva 
+        """
         def actualizar_lista_puntos_discusion(*args):
+            """Una vez se ingresa la discucion se actualiza la lista de discuciones
+            """
             apartado = variable_apartado_discusion.get()
             menu_desplegable_punto_discusion['menu'].delete(0, tk.END)
             if apartado in self.puntos:
                 for punto in self.puntos[apartado]:
                     menu_desplegable_punto_discusion['menu'].add_command(label=punto, command=tk._setit(variable_punto_discusion, punto))
 
+
+
+        #Cuadro de dialogo para las asigaciones de la discución
         discusion = tk.Toplevel(self)
         discusion.title("Agregar Discusión")
         discusion.geometry("400x300")
@@ -248,6 +434,8 @@ class CreadorAgendas(tk.Tk):
         texto_descripcion_discusion.pack()
 
         def guardar_discusion():
+            """se guarda la discucion correspondiente
+            """
             apartado = variable_apartado_discusion.get()
             punto = variable_punto_discusion.get()
             persona = variable_persona_discusion.get()
@@ -267,6 +455,8 @@ class CreadorAgendas(tk.Tk):
         boton_guardar_discusion.pack()
 
     def imprimir_agenda(self):
+        """Este metodo se encarga de imprimir la agenda para poder observar una previsualizaciion 
+        """
         self.titulo_agenda = self.entrada_titulo.get()
         if not self.titulo_agenda:
             messagebox.showwarning("Advertencia", "Debes ingresar un título para la agenda.")
@@ -298,6 +488,8 @@ class CreadorAgendas(tk.Tk):
         messagebox.showinfo("Agenda", agenda)
 
     def imprimir_agenda_terminal(self):
+        """Este es un metodo propio del desarrollo cuyo objetivo es verificar que todo se guarde como debería
+        """
         
         for section in self.discusiones:
             print(f"Apartado: {section}")
