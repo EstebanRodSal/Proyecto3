@@ -167,7 +167,8 @@ class CreadorAgendas(tk.Tk):
         super().__init__()
         self.title("Creador de Agendas")
         self.geometry("800x600")
-
+        self.config(bg="#1f1f1f")
+        self.fuentes = ["Arial", "Times New Roman", "Courier New"]
 
         #-----------------------------------Creacion de la interfaz-------------------------------------------------
         self.titulo_agenda = None
@@ -181,7 +182,7 @@ class CreadorAgendas(tk.Tk):
         self.etiqueta_titulo.pack()
 
         self.entrada_titulo = tk.Entry(self)
-        self.entrada_titulo.pack()
+        self.entrada_titulo.pack(pady=10)
 
         self.etiqueta_participantes = tk.Label(self, text="Participantes:")
         self.etiqueta_participantes.pack()
@@ -193,10 +194,10 @@ class CreadorAgendas(tk.Tk):
         self.entrada_participante.pack()
 
         self.boton_agregar_participante = tk.Button(self, text="Agregar Participante", command=self.agregar_participante)
-        self.boton_agregar_participante.pack()
+        self.boton_agregar_participante.pack(pady=10)
 
         self.boton_eliminar_participante = tk.Button(self, text="Eliminar Participante", command=self.eliminar_participante)
-        self.boton_eliminar_participante.pack()
+        self.boton_eliminar_participante.pack(pady=10)
 
         self.etiqueta_apartados = tk.Label(self, text="Apartados:")
         self.etiqueta_apartados.pack()
@@ -205,10 +206,10 @@ class CreadorAgendas(tk.Tk):
         self.entrada_apartado.pack()
 
         self.boton_agregar_apartado = tk.Button(self, text="Agregar Apartado", command=self.agregar_apartado)
-        self.boton_agregar_apartado.pack()
+        self.boton_agregar_apartado.pack(pady=10)
 
         self.boton_eliminar_apartado = tk.Button(self, text="Eliminar Apartado", command=self.eliminar_apartado)
-        self.boton_eliminar_apartado.pack()
+        self.boton_eliminar_apartado.pack(pady=10)
 
         self.etiqueta_puntos = tk.Label(self, text="Puntos:")
         self.etiqueta_puntos.pack()
@@ -219,43 +220,89 @@ class CreadorAgendas(tk.Tk):
         self.variable_apartado = tk.StringVar(self)
         self.variable_apartado.trace("w", self.actualizar_lista_puntos)
         self.menu_desplegable_apartado = tk.OptionMenu(self, self.variable_apartado, "")
-        self.menu_desplegable_apartado.pack()
+        self.menu_desplegable_apartado.pack(pady=5)
 
         self.variable_punto = tk.StringVar(self)
         self.menu_desplegable_punto = tk.OptionMenu(self, self.variable_punto, "")
-        self.menu_desplegable_punto.pack()
+        self.menu_desplegable_punto.pack(pady=5)
 
         self.boton_agregar_punto = tk.Button(self, text="Agregar Punto", command=self.agregar_punto)
-        self.boton_agregar_punto.pack()
+        self.boton_agregar_punto.pack(pady=5)
 
         self.boton_eliminar_punto = tk.Button(self, text="Eliminar Punto", command=self.eliminar_punto)
-        self.boton_eliminar_punto.pack()
+        self.boton_eliminar_punto.pack(pady=5)
 
         self.boton_agregar_discusion = tk.Button(self, text="Agregar Discusión", command=self.agregar_discusion)
-        self.boton_agregar_discusion.pack()
+        self.boton_agregar_discusion.pack(pady=5)
 
         self.boton_imprimir_agenda = tk.Button(self, text="Imprimir Agenda", command=self.imprimir_agenda)
-        self.boton_imprimir_agenda.pack()
+        self.boton_imprimir_agenda.pack(side="right", padx=10)
 
         self.discusiones = {}  # Diccionario para almacenar las discusiones
 
-
         self.boton_generar_html = tk.Button(self, text="Generar HTML", command=self.generar_html)
-        self.boton_generar_html.pack()
+        self.boton_generar_html.pack(side="right")
+
+        self.etiqueta_fuentes = tk.Label(self, text="Fuentes:")
+        self.etiqueta_fuentes.pack()
+
+        self.variable_fuente = tk.StringVar(self)
+        self.variable_fuente.set(self.fuentes[0])
+
+        self.menu_desplegable_fuente = tk.OptionMenu(self, self.variable_fuente, *self.fuentes)
+        self.menu_desplegable_fuente.pack(pady=5)
+
+
 
         #------------------------------------------Fin de la interfaz---------------------------------------------------------
 
     def generar_html(self):
-        """Este metodo se encarga de la construccion de la estructura html para mostrar mediante web view la agenda
-        """
+        """Este método se encarga de la construcción de la estructura HTML para mostrar mediante WebView la agenda."""
         self.titulo_agenda = self.entrada_titulo.get()
         if not self.titulo_agenda:
             tk.messagebox.showwarning("Advertencia", "Debes ingresar un título para la agenda.")
             return
 
-        html = f"<!DOCTYPE html>\n<html>\n<head>\n<title>{self.titulo_agenda}</title>\n</head>\n<body>\n"
+
+        fuente = self.variable_fuente.get()
+        css = f"""
+        <style>
+        body {{
+            font-family: {fuente}, sans-serif;
+            margin: 20px;
+        }}
+        
+        h1 {{
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }}
+        
+        h2 {{
+            color: #555;
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }}
+        
+        ul {{
+            margin-left: 20px;
+        }}
+        
+        li {{
+            margin-bottom: 5px;
+        }}
+        
+        ol {{
+            margin-left: 40px;
+        }}
+        
+        </style>
+        """
+
+        html = f"<!DOCTYPE html>\n<html>\n<head>\n<title>{self.titulo_agenda}</title>\n{css}\n</head>\n<body>\n"
         html += f"<h1>{self.titulo_agenda}</h1>\n"
-        html += f"<p>Fecha de creación: {datetime.datetime.now()}</p>\n"
+        html += f"<p style='color: #888;'>Fecha de creación: {datetime.datetime.now()}</p>\n"
 
         if self.participantes:
             html += "<h2>Participantes</h2>\n"
@@ -288,6 +335,7 @@ class CreadorAgendas(tk.Tk):
         # Mostrar el HTML en un componente WebView
         webview.create_window("Agenda", html=html, width=800, height=600)
         webview.start()
+
 
     def agregar_participante(self):
         """Este metodo se encarga de agregar nuevos particpantes
